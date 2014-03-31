@@ -2,49 +2,47 @@
 int rSn; // randomSeed number. put into var so can be saved in file name. defaults to 47
 final float PHI = 0.618033989;
 PFont font;
-Table temps;
+Table t;
+CompData compData;
+String[] tempData;
 
+// ArrayList of Tables of location temps (now and last year)
+// Create a new Object to hold compData for each location?
+// Array of city names in order of colder # of days to warmer # of days
 
+// Layout Variables
 float margin;
-
-  float chartX1;
-  float chartX2;
-  float chartY1;
-  float chartY2;
+float chartX1;
+float chartX2;
+float chartY1;
+float chartY2;
 
 
 void setup() {
-  background(255);
-  size(900, 600);
-  // rSn = 47;
-  rSn = 29;
-  // rSn = 18;
-  randomSeed(rSn);
-  font = createFont("Helvetica", 24);  //requires a font file in the data folder
+	background(255);
+	size(900, 600);
+
+	rSn = 47; // 4,7,11,18,29,47,76,123,199
+	randomSeed(rSn);
+
+	font = createFont("Helvetica", 24);  //requires a font file in the data folder
 
 	margin = width * pow(PHI, 7);
-	println("margin = " + margin);
+	// println("margin = " + margin);
 
-   chartX1 = margin;
-   chartX2 = width - (margin);
-   chartY1 = margin * 4;
-   chartY2 = height - (margin);
+	chartX1 = margin;
+	chartX2 = width - (margin);
+	chartY1 = (margin * 1);
+	chartY2 = height - (margin);
 
 
-	// create data table and insert data
-	temps = new Table();
-	temps.addColumn("Date");
-	temps.addColumn("Temp1");
-	temps.addColumn("Temp2");
+	t = loadTemps("toronto.txt");
 
-	for (int i = 0; i < 183; ++i) {
-		TableRow newRow = temps.addRow();
-		newRow.setInt("Date", temps.lastRowIndex());
-		newRow.setFloat("Temp1", (80 * noise(i/100.0))-40);
-		newRow.setFloat("Temp2", ((80 * noise(47 + i/100.0))) - 40);
-	}
-// println(temps);
-  println("setup done: " + nf(millis() / 1000.0, 1, 2));
+	// Comparison data
+	// # of warmer than last year days
+	compData = new CompData(t);
+
+	println("setup done: " + nf(millis() / 1000.0, 1, 2));
 }
 
 void draw() {
@@ -52,29 +50,6 @@ void draw() {
 	noFill();
 	stroke(0);
 	//rect(chartX1, chartY1, width-(margin*2), height-(margin*2));
-
-	for (int i = 0; i < temps.getRowCount(); i++) {
-		TableRow cRow = temps.getRow(i);
-		float t1temp = cRow.getFloat("Temp1");
-		float t2temp = cRow.getFloat("Temp2");
-
-
-
-		float t1x = map(i, 0, temps.getRowCount()-1, chartX1+margin * 2, chartX2);
-		float t1y = map(t1temp, 40, -40, chartY1, chartY2);
-
-		float t2x = t1x;
-		float t2y = map(t2temp, 40, -40, chartY1, chartY2);
-
-		if(t1temp<t2temp){ // is it colder this year than last?
-			stroke(50, 50, 255);
-		}else{
-			stroke(255, 50, 50);
-		}
-		line(t1x, t1y, t2x, t2y);
-		ellipse(t1x,t1y, 3,3);
-
-	}
 
 	stroke(200);
 	for (int i = 40; i > -41; i-=10) {
@@ -85,6 +60,145 @@ void draw() {
 		text(i, chartX1,ly+8);
 	}
 
+
+	for (int i = 0; i < t.getRowCount(); i++) {
+		TableRow cRow = t.getRow(i);
+		float t1temp = cRow.getFloat("Temp1");
+		float t2temp = cRow.getFloat("Temp2");
+
+		color tempClr;
+
+		float t1x = map(i, 0, t.getRowCount()-1, chartX1+margin * 2, chartX2);
+		float t1y = map(t1temp, 40, -40, chartY1, chartY2);
+
+		float t2x = t1x;
+		float t2y = map(t2temp, 40, -40, chartY1, chartY2);
+
+		if(t1temp<t2temp){ // is it colder this year than last?
+			tempClr = color(50, 50, 255);
+		}else{
+			tempClr = color(255, 50, 50);
+		}
+		stroke(tempClr);
+		line(t1x, t1y, t2x, t2y);
+		fill(tempClr);
+		ellipse(t1x,t1y, 3,3);
+
+	}
+
+	int daysWarmer = compData.getDaysWarmer();
+	int daysColder = compData.getDaysColder();
+	float totalWarmerDelta = compData.getTotalWarmerDelta()/daysWarmer;
+	float totalColderDelta = compData.getTotalColderDelta()/daysColder;
+
+	fill(255,100,100);
+	String dwt = "Days Warmer: " + daysWarmer;
+	text(dwt, chartX2-textWidth(dwt), chartY1+margin-10);
+	String twdt = "Warmer on Average: " + nf(totalWarmerDelta, 0, 2);
+	text(twdt, chartX2-textWidth(twdt), chartY1 + margin *2-10);
+
+	fill(100,100,255);
+	String dct = "Days Colder: " + daysColder;
+	text(dct, chartX2-textWidth(dct), chartY2);
+	String tcdt = "Colder on Average: " + nf(totalColderDelta, 0, 2);
+	text(tcdt, chartX2-textWidth(tcdt), chartY2 - margin*1);
+}
+
+
+Table loadTemps(String _input){
+	String input = _input;
+	String[] loadedData = loadStrings(input);
+	// String[] loadedData = loadStrings("toronto.txt");
+	println("loadedDate.length: " + loadedData.length);
+
+	Table tempTimeline = new Table();
+	tempTimeline.addColumn("Date");
+	tempTimeline.addColumn("Temp");
+
+	for (int j = 0; j < loadedData.length; j++) {
+		String r = loadedData[j];
+		String[] loadedDataRow = split(loadedData[j], TAB);
+		String indxData = "";
+		/*
+		for (int k = 0; k < loadedDataRow.length; k++) {
+			indxData += "i: " + k + " = data: " + loadedDataRow[k] + ", ";
+		}
+		println(indxData);
+		*/
+		String dt = loadedDataRow[2];
+		float t1 = float(loadedDataRow[6]);
+		
+		TableRow newRow = tempTimeline.addRow();
+		newRow.setString("Date", dt);
+		newRow.setFloat("Temp", t1/10);
+	}
+
+	// create the temperature comparison table
+	Table cmprTempData = new Table();
+	cmprTempData.addColumn("Date");
+	cmprTempData.addColumn("Temp1");
+	cmprTempData.addColumn("Temp2");
+
+
+	// for (int i = 0; i < tempTimeline.getRowCount(); i++) {
+	for (int i = 0; i < 183; i++) {
+		TableRow lyRow = tempTimeline.getRow(i);
+		String lyDate = lyRow.getString("Date");
+		String cyDate = lyDate.substring(0, 3) + (int(lyDate.substring(3, 4)) + 1) + lyDate.substring(4);
+
+		TableRow cyTempRow = tempTimeline.findRow(cyDate, "Date");
+
+		if(cyTempRow != null){ // make sure there is an entry for the current year too
+			float t1 = cyTempRow.getFloat("Temp");
+			float t2 = lyRow.getFloat("Temp");
+			if((t1 > -9990) && (t2 > -9998)){ // make sure there aren't dummy data entries (-9999)
+				TableRow newCmprRow = cmprTempData.addRow();
+				newCmprRow.setString("Date", lyDate);
+				newCmprRow.setFloat("Temp1", t1);
+				newCmprRow.setFloat("Temp2", t2);
+				println("Date: " + lyDate + ", Temp1: " + t1 + ", Temp2: " + t2);
+			}
+		}
+	}
+	println("cmprTempData.getRowCount() = " + cmprTempData.getRowCount());
+	return cmprTempData;
+}
+
+
+class CompData{
+	int daysWarmer, daysColder;
+	float totalWarmerDelta, totalColderDelta;
+	Table tempDataTable;
+
+	CompData(Table _t){
+		tempDataTable = _t;
+		for (int i = 0; i < tempDataTable.getRowCount(); i++) {
+			TableRow cRow = tempDataTable.getRow(i);
+			float t1temp = cRow.getFloat("Temp1");
+			float t2temp = cRow.getFloat("Temp2");
+
+			if(t1temp > t2temp){ // warmer than last year
+				daysWarmer++;
+				totalWarmerDelta += t1temp;
+			}else{ // colder than last year
+				daysColder++;
+				totalColderDelta -=t2temp;
+			}
+		}
+	}
+
+	int getDaysWarmer(){
+		return daysWarmer;
+	}
+	int getDaysColder(){
+		return daysColder;
+	}
+	float getTotalWarmerDelta(){
+		return totalWarmerDelta;
+	}
+	float getTotalColderDelta(){
+		return totalColderDelta;
+	}
 }
 
 
@@ -99,13 +213,9 @@ void draw() {
 
 
 
-
-
-
-
-
-
-
+/////////////////////////////////////////////////////////////////////
+  //		UI and Image Saving Functions						 //
+/////////////////////////////////////////////////////////////////////
 void keyPressed() {
   if (key == 'S') screenCap();
 }
