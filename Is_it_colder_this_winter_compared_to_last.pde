@@ -1,3 +1,5 @@
+import java.util.Map;
+
 //Declare Globals
 int rSn; // randomSeed number. put into var so can be saved in file name. defaults to 47
 final float PHI = 0.618033989;
@@ -5,6 +7,8 @@ PFont font;
 Table t;
 CompData compData;
 String[] tempData;
+HashMap<String,Float> cythm = new HashMap<String,Float>();
+HashMap<String,Float> lythm = new HashMap<String,Float>();
 
 // ArrayList of Tables of location temps (now and last year)
 // Create a new Object to hold compData for each location?
@@ -36,13 +40,24 @@ void setup() {
 	chartY2 = height - (margin);
 
 
-	t = loadTemps("toronto.txt");
+	// t = loadTemps("toronto.txt");
+	lythm = loadTemps("eng-daily-01012012-12312012.csv");
+	cythm = loadTemps("eng-daily-01012013-12312013.csv");
 
 	// Comparison data
 	// # of warmer than last year days
-	compData = new CompData(t);
+	// compData = new CompData(t);
+
+	int compIntervalYrs = 1; 
+	DateTime baseTimeStart = October 2012
+	DateTime baseTimeEnd = LocalDate();
+	DateTime compTimeStart = baseTimeStart - Joda Time (minus compIntervalYrs)
+	DateTime compTimeEnd = LocalDate();
+	int timelineDurationInDays = jodaTime(get difference between start and end in days);
+
 
 	println("setup done: " + nf(millis() / 1000.0, 1, 2));
+	noLoop();
 }
 
 void draw() {
@@ -50,6 +65,15 @@ void draw() {
 	noFill();
 	stroke(0);
 	//rect(chartX1, chartY1, width-(margin*2), height-(margin*2));
+
+
+for (DateTime currDate = baseTimeStart; currDate.isBefore(baseTimeEnd); currDate = date.plusMonths(1)){
+	// draw month vert lines and timeline ticks/labels
+
+}
+for (DateTime currDate = baseTimeStart; currDate.isBefore(baseTimeEnd); currDate = date.plusDays(1)){
+    
+}
 
 	stroke(200);
 	for (int i = 40; i > -41; i-=10) {
@@ -104,8 +128,9 @@ void draw() {
 	text(tcdt, chartX2-textWidth(tcdt), chartY2 - margin*1);
 }
 
-
+/*
 Table loadTemps(String _input){
+	
 	String input = _input;
 	String[] loadedData = loadStrings(input);
 	// String[] loadedData = loadStrings("toronto.txt");
@@ -124,7 +149,7 @@ Table loadTemps(String _input){
 			indxData += "i: " + k + " = data: " + loadedDataRow[k] + ", ";
 		}
 		println(indxData);
-		*/
+		
 		String dt = loadedDataRow[2];
 		float t1 = float(loadedDataRow[6]);
 		
@@ -163,9 +188,83 @@ Table loadTemps(String _input){
 	println("cmprTempData.getRowCount() = " + cmprTempData.getRowCount());
 	return cmprTempData;
 }
+*/
+
+HashMap loadTemps(String _input){
+	String input = _input;
+	String[] loadedData = loadStrings(input);
+	// String[] loadedData = loadStrings("toronto.txt");
+	println("loadedDate.length: " + loadedData.length);
+
+	HashMap<String,Float> hm = new HashMap<String,Float>();
+	int dataRowOffset = 25; // first row is 0, second is 1...
+	for (int j = dataRowOffset; j < dataRowOffset+365; j++) {
+		String r = loadedData[j];
+		String[] loadedDataRow = split(loadedData[j], ",");
+		// String indxData = "";
+		String dt = scrubQuotes(loadedDataRow[0]);
+		float t1 = float(scrubQuotes(loadedDataRow[9].substring(1,loadedDataRow[9].length()-1)));
+		
+		hm.put(dt, t1);
+		println("hm.put(" + dt + ", " + t1 + ")");
+	}
+
+	return hm;
+}
+
+// modified from http://www.openprocessing.org/sketch/49248
+String scrubQuotes(String _input){
+	String input = _input;
+	if (input.length() > 2) {
+		// remove quotes at start and end, if present
+		if (input.startsWith("\"") && input.endsWith("\"")) {
+			input = input.substring(1, input.length() - 1);
+		}
+	}
+	// make double quotes into single quotes
+	// array[i] = array[i].replaceAll("\"\"", "\"");
+	String output = input;
+	return output;
+}
+  
 
 
-class CompData{
+
+	// create the temperature comparison table
+	/*
+	Table cmprTempData = new Table();
+	cmprTempData.addColumn("Date");
+	cmprTempData.addColumn("Temp1");
+	cmprTempData.addColumn("Temp2");
+
+
+	// for (int i = 0; i < tempTimeline.getRowCount(); i++) {
+	for (int i = 0; i < 183; i++) {
+		TableRow lyRow = tempTimeline.getRow(i);
+		String lyDate = lyRow.getString("Date");
+		String cyDate = lyDate.substring(0, 3) + (int(lyDate.substring(3, 4)) + 1) + lyDate.substring(4);
+
+		TableRow cyTempRow = tempTimeline.findRow(cyDate, "Date");
+
+		if(cyTempRow != null){ // make sure there is an entry for the current year too
+			float t1 = cyTempRow.getFloat("Temp");
+			float t2 = lyRow.getFloat("Temp");
+			if((t1 > -9990) && (t2 > -9998)){ // make sure there aren't dummy data entries (-9999)
+				TableRow newCmprRow = cmprTempData.addRow();
+				newCmprRow.setString("Date", lyDate);
+				newCmprRow.setFloat("Temp1", t1);
+				newCmprRow.setFloat("Temp2", t2);
+				println("Date: " + lyDate + ", Temp1: " + t1 + ", Temp2: " + t2);
+			}
+		}
+	}
+	println("cmprTempData.getRowCount() = " + cmprTempData.getRowCount());
+	return cmprTempData;
+}
+*/
+
+
+class CompData {
 	int daysWarmer, daysColder;
 	float totalWarmerDelta, totalColderDelta;
 	Table tempDataTable;
