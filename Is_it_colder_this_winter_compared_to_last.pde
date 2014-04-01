@@ -22,7 +22,7 @@ float chartY2;
 DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 DateTime baseTimeStart, baseTimeEnd;
 DateTime compTimeStart, compTimeEnd;
-int compIntervalYrs;
+int compIntervalYrs, timelineDurationInDays;
 
 void setup() {
 	background(255);
@@ -60,10 +60,10 @@ void setup() {
 	 baseTimeEnd = new DateTime(2014, 3, 30, 0, 0, 0, 0);
 	 compTimeStart = baseTimeStart.minusYears(compIntervalYrs);
 	 compTimeEnd = baseTimeEnd.minusYears(compIntervalYrs);
-	// int timelineDurationInDays = jodaTime(get difference between start and end in days);
-	
+	 timelineDurationInDays = Days.daysBetween(baseTimeStart.withTimeAtStartOfDay() , baseTimeEnd.withTimeAtStartOfDay() ).getDays();
+	println("time line Duration in Days: " + timelineDurationInDays);
 	println("setup done: " + nf(millis() / 1000.0, 1, 2));
-	noLoop();
+// 	noLoop();
 }
 
 void draw() {
@@ -87,11 +87,36 @@ void draw() {
 	*/
 
 	for (DateTime currDate = baseTimeStart; currDate.isBefore(baseTimeEnd); currDate = currDate.plusDays(1)){
+		float t1 = 0;
+		float t2 = 0;
 		DateTime compTimeDate = currDate.minusYears(compIntervalYrs);
 
 		String baseFormattedDate = formatter.print(currDate);
 		String compFormattedDate = formatter.print(compTimeDate);
-		println(baseFormattedDate + " vs " + compFormattedDate);
+		println(baseFormattedDate +  " vs " + compFormattedDate);
+
+		if((thm.get(baseFormattedDate) != null) && (thm.get(compFormattedDate) != null)){
+			t1 = thm.get(baseFormattedDate);
+			t2 = thm.get(compFormattedDate);
+			println(baseFormattedDate + ", " + t1 + " vs " + t2 + ", " + compFormattedDate);
+		}
+		color tempClr;
+
+		float t1x = map(daysSinceBaseStartTime(currDate) , 0 , timelineDurationInDays, chartX1+margin*2, chartX2);
+		float t1y = map(t1, 40, -40, chartY1, chartY2);
+
+		float t2x = t1x;
+		float t2y = map(t2, 40, -40, chartY1, chartY2);
+
+		if(t1<t2){ // is it colder this year than last?
+			tempClr = color(50, 50, 255);
+		}else{
+			tempClr = color(255, 50, 50);
+		}
+		stroke(tempClr);
+		line(t1x, t1y, t2x, t2y);
+		fill(tempClr);
+		ellipse(t1x, t1y, 3, 3);
 	}
 	
 	/*
@@ -202,6 +227,12 @@ Table loadTemps(String _input){
 }
 */
 
+int daysSinceBaseStartTime(DateTime _cdt){
+	DateTime cdt = _cdt;
+	return Days.daysBetween(baseTimeStart.withTimeAtStartOfDay() , cdt.withTimeAtStartOfDay() ).getDays();
+}
+
+
 void loadTemps(HashMap _hm, String _filename){
 	String filename = _filename;
 	HashMap<String,Float> hm = _hm;
@@ -215,9 +246,9 @@ void loadTemps(HashMap _hm, String _filename){
 			String[] loadedDataRow = split(loadedData[j], ",");
 			String dt = scrubQuotes(loadedDataRow[0]);
 			float t1 = float(scrubQuotes(loadedDataRow[9].substring(1,loadedDataRow[9].length()-1)));
-			if(t1 > -100){
+			if(t1 > -100){ // this part is sketchy - find a better way of doing this
 				hm.put(dt, t1);
-				// println("hm.put(" + dt + ", " + t1 + ")");
+				println("hm.put(" + dt + ", " + t1 + ")");
 			}
 	}
 }
