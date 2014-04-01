@@ -7,8 +7,10 @@ PFont font;
 Table t;
 CompData compData;
 String[] tempData;
-HashMap<String,Float> cythm = new HashMap<String,Float>();
-HashMap<String,Float> lythm = new HashMap<String,Float>();
+
+HashMap<String,Float> thm = new HashMap<String,Float>(); // (t)emperature (h)ash(m)ap - this holds all temp data for a location
+// HashMap<String,Float> cythm = new HashMap<String,Float>(); // (c)urrent (y)ear (t)emperature (h)ash(m)ap
+// HashMap<String,Float> lythm = new HashMap<String,Float>(); // (l)ast (y)ear (t)emperature (h)ash(m)ap
 
 // ArrayList of Tables of location temps (now and last year)
 // Create a new Object to hold compData for each location?
@@ -34,26 +36,33 @@ void setup() {
 	margin = width * pow(PHI, 7);
 	// println("margin = " + margin);
 
-	chartX1 = margin;
+	chartX1 = (margin * 1);
 	chartX2 = width - (margin);
 	chartY1 = (margin * 1);
 	chartY2 = height - (margin);
 
 
-	// t = loadTemps("toronto.txt");
-	lythm = loadTemps("eng-daily-01012012-12312012.csv");
-	cythm = loadTemps("eng-daily-01012013-12312013.csv");
+	// t = loadTemps("toronto.txt"); // old way
+	// new way is a function that is given a hashmap and a file to load in 
+	loadTemps(thm, "eng-daily-01012012-12312012.csv");
+	loadTemps(thm, "eng-daily-01012013-12312013.csv");
+	loadTemps(thm, "eng-daily-01012014-12312014.csv");
+	println("thm: " + thm);
+
 
 	// Comparison data
 	// # of warmer than last year days
 	// compData = new CompData(t);
 
+	/*
 	int compIntervalYrs = 1; 
-	DateTime baseTimeStart = October 2012
+	DateTime baseTimeStart = October 1 2013
 	DateTime baseTimeEnd = LocalDate();
 	DateTime compTimeStart = baseTimeStart - Joda Time (minus compIntervalYrs)
 	DateTime compTimeEnd = LocalDate();
 	int timelineDurationInDays = jodaTime(get difference between start and end in days);
+	*/
+
 
 
 	println("setup done: " + nf(millis() / 1000.0, 1, 2));
@@ -67,6 +76,7 @@ void draw() {
 	//rect(chartX1, chartY1, width-(margin*2), height-(margin*2));
 
 
+/*
 for (DateTime currDate = baseTimeStart; currDate.isBefore(baseTimeEnd); currDate = date.plusMonths(1)){
 	// draw month vert lines and timeline ticks/labels
 
@@ -74,7 +84,7 @@ for (DateTime currDate = baseTimeStart; currDate.isBefore(baseTimeEnd); currDate
 for (DateTime currDate = baseTimeStart; currDate.isBefore(baseTimeEnd); currDate = date.plusDays(1)){
     
 }
-
+*/
 	stroke(200);
 	for (int i = 40; i > -41; i-=10) {
 		float ly = map(i, 40, -40, chartY1, chartY2);
@@ -190,26 +200,24 @@ Table loadTemps(String _input){
 }
 */
 
-HashMap loadTemps(String _input){
-	String input = _input;
-	String[] loadedData = loadStrings(input);
-	// String[] loadedData = loadStrings("toronto.txt");
-	println("loadedDate.length: " + loadedData.length);
+void loadTemps(HashMap _hm, String _filename){
+	String filename = _filename;
+	HashMap<String,Float> hm = _hm;
 
-	HashMap<String,Float> hm = new HashMap<String,Float>();
+	String[] loadedData = loadStrings(filename);
+	// println("loadedDate.length: " + loadedData.length);
+
 	int dataRowOffset = 25; // first row is 0, second is 1...
 	for (int j = dataRowOffset; j < dataRowOffset+365; j++) {
 		String r = loadedData[j];
-		String[] loadedDataRow = split(loadedData[j], ",");
-		// String indxData = "";
-		String dt = scrubQuotes(loadedDataRow[0]);
-		float t1 = float(scrubQuotes(loadedDataRow[9].substring(1,loadedDataRow[9].length()-1)));
-		
-		hm.put(dt, t1);
-		println("hm.put(" + dt + ", " + t1 + ")");
+			String[] loadedDataRow = split(loadedData[j], ",");
+			String dt = scrubQuotes(loadedDataRow[0]);
+			float t1 = float(scrubQuotes(loadedDataRow[9].substring(1,loadedDataRow[9].length()-1)));
+			if(t1 > -100){
+				hm.put(dt, t1);
+				// println("hm.put(" + dt + ", " + t1 + ")");
+			}
 	}
-
-	return hm;
 }
 
 // modified from http://www.openprocessing.org/sketch/49248
