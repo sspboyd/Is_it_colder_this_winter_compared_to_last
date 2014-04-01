@@ -8,13 +8,8 @@ Table t;
 CompData compData;
 String[] tempData;
 
-HashMap<String,Float> thm = new HashMap<String,Float>(); // (t)emperature (h)ash(m)ap - this holds all temp data for a location
-// HashMap<String,Float> cythm = new HashMap<String,Float>(); // (c)urrent (y)ear (t)emperature (h)ash(m)ap
-// HashMap<String,Float> lythm = new HashMap<String,Float>(); // (l)ast (y)ear (t)emperature (h)ash(m)ap
-
-// ArrayList of Tables of location temps (now and last year)
-// Create a new Object to hold compData for each location?
-// Array of city names in order of colder # of days to warmer # of days
+// (t)emperature (h)ash(m)ap - this holds all temp data for a location
+HashMap<String,Float> thm = new HashMap<String,Float>(); 
 
 // Layout Variables
 float margin;
@@ -23,6 +18,11 @@ float chartX2;
 float chartY1;
 float chartY2;
 
+
+DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+DateTime baseTimeStart, baseTimeEnd;
+DateTime compTimeStart, compTimeEnd;
+int compIntervalYrs;
 
 void setup() {
 	background(255);
@@ -47,44 +47,29 @@ void setup() {
 	loadTemps(thm, "eng-daily-01012012-12312012.csv");
 	loadTemps(thm, "eng-daily-01012013-12312013.csv");
 	loadTemps(thm, "eng-daily-01012014-12312014.csv");
-	println("thm: " + thm);
+	// println("thm: " + thm);
 
 
 	// Comparison data
 	// # of warmer than last year days
 	// compData = new CompData(t);
 
-	/*
-	int compIntervalYrs = 1; 
-	DateTime baseTimeStart = October 1 2013
-	DateTime baseTimeEnd = LocalDate();
-	DateTime compTimeStart = baseTimeStart - Joda Time (minus compIntervalYrs)
-	DateTime compTimeEnd = LocalDate();
-	int timelineDurationInDays = jodaTime(get difference between start and end in days);
-	*/
-
-
-
+	
+	 compIntervalYrs = 1; 
+	 baseTimeStart = new DateTime(2013, 10, 1, 0, 0, 0, 0);;  // October 2013
+	 baseTimeEnd = new DateTime(2014, 3, 30, 0, 0, 0, 0);
+	 compTimeStart = baseTimeStart.minusYears(compIntervalYrs);
+	 compTimeEnd = baseTimeEnd.minusYears(compIntervalYrs);
+	// int timelineDurationInDays = jodaTime(get difference between start and end in days);
+	
 	println("setup done: " + nf(millis() / 1000.0, 1, 2));
 	noLoop();
 }
 
 void draw() {
 	background(255);
-	noFill();
-	stroke(0);
-	//rect(chartX1, chartY1, width-(margin*2), height-(margin*2));
 
-
-/*
-for (DateTime currDate = baseTimeStart; currDate.isBefore(baseTimeEnd); currDate = date.plusMonths(1)){
-	// draw month vert lines and timeline ticks/labels
-
-}
-for (DateTime currDate = baseTimeStart; currDate.isBefore(baseTimeEnd); currDate = date.plusDays(1)){
-    
-}
-*/
+	// Draw horiz temp guidelines
 	stroke(200);
 	for (int i = 40; i > -41; i-=10) {
 		float ly = map(i, 40, -40, chartY1, chartY2);
@@ -95,6 +80,21 @@ for (DateTime currDate = baseTimeStart; currDate.isBefore(baseTimeEnd); currDate
 	}
 
 
+	/*
+	for(DateTime currDate = baseTimeStart; currDate.isBefore(baseTimeEnd); currDate = date.plusMonths(1)){
+		// draw month vert lines and timeline ticks/labels
+	}
+	*/
+
+	for (DateTime currDate = baseTimeStart; currDate.isBefore(baseTimeEnd); currDate = currDate.plusDays(1)){
+		DateTime compTimeDate = currDate.minusYears(compIntervalYrs);
+
+		String baseFormattedDate = formatter.print(currDate);
+		String compFormattedDate = formatter.print(compTimeDate);
+		println(baseFormattedDate + " vs " + compFormattedDate);
+	}
+	
+	/*
 	for (int i = 0; i < t.getRowCount(); i++) {
 		TableRow cRow = t.getRow(i);
 		float t1temp = cRow.getFloat("Temp1");
@@ -117,9 +117,10 @@ for (DateTime currDate = baseTimeStart; currDate.isBefore(baseTimeEnd); currDate
 		line(t1x, t1y, t2x, t2y);
 		fill(tempClr);
 		ellipse(t1x,t1y, 3,3);
-
 	}
+	*/
 
+	/*
 	int daysWarmer = compData.getDaysWarmer();
 	int daysColder = compData.getDaysColder();
 	float totalWarmerDelta = compData.getTotalWarmerDelta()/daysWarmer;
@@ -136,6 +137,7 @@ for (DateTime currDate = baseTimeStart; currDate.isBefore(baseTimeEnd); currDate
 	text(dct, chartX2-textWidth(dct), chartY2);
 	String tcdt = "Colder on Average: " + nf(totalColderDelta, 0, 2);
 	text(tcdt, chartX2-textWidth(tcdt), chartY2 - margin*1);
+	*/
 }
 
 /*
