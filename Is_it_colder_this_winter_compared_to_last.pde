@@ -116,7 +116,7 @@ void draw() {
 		stroke(tempClr);
 		line(t1x, t1y, t2x, t2y);
 		fill(tempClr);
-		ellipse(t1x, t1y, 3, 3);
+		ellipse(t1x, t1y, 3,  3);
 	}
 	
 	/*
