@@ -4,8 +4,8 @@ import java.util.Map;
 int rSn; // randomSeed number. put into var so can be saved in file name. defaults to 47
 final float PHI = 0.618033989;
 PFont font;
-Table t;
-CompData compData;
+// Table t;
+// CompData compData;
 String[] tempData;
 
 // (t)emperature (h)ash(m)ap - this holds all temp data for a location
@@ -18,8 +18,8 @@ float chartX2;
 float chartY1;
 float chartY2;
 
-int MAX_TEMP = 30;
-int MIN_TEMP = -30;
+int MAX_TEMP = 20;
+int MIN_TEMP = -20;
 
 
 DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
@@ -34,9 +34,9 @@ void setup() {
 	rSn = 47; // 4,7,11,18,29,47,76,123,199
 	randomSeed(rSn);
 
-	font = createFont("Helvetica", 24);  //requires a font file in the data folder
+	font = createFont("Helvetica", 12);  //requires a font file in the data folder
 
-	margin = width * pow(PHI, 7);
+	margin = width * pow(PHI, 6);
 	// println("margin = " + margin);
 
 	chartX1 = (margin * 1);
@@ -59,7 +59,7 @@ void setup() {
 
 	
 	 compIntervalYrs = 1; 
-	 baseTimeStart = new DateTime(2013, 10, 1, 0, 0, 0, 0);;  // October 2013
+	 baseTimeStart = new DateTime(2013, 11, 1, 0, 0, 0, 0);;  // October 2013
 	 baseTimeEnd = new DateTime(2014, 3, 30, 0, 0, 0, 0);
 	 compTimeStart = baseTimeStart.minusYears(compIntervalYrs);
 	 compTimeEnd = baseTimeEnd.minusYears(compIntervalYrs);
@@ -74,12 +74,13 @@ void draw() {
 
 	// Draw horiz temp guidelines
 	stroke(200);
+	strokeWeight(.5);
 	for (int i = MAX_TEMP; i > MIN_TEMP-1; i-=10) {
 		float ly = map(i, MAX_TEMP, MIN_TEMP, chartY1, chartY2);
-		line(chartX1+margin * 2, ly, chartX2, ly);
+		line(chartX1+margin * 0, ly, chartX2, ly);
 		fill(0);
 		textFont(font);
-		text(i, chartX1,ly+8);
+		text(i, chartX1,ly-2);
 	}
 
 
@@ -106,7 +107,7 @@ void draw() {
 		}
 		color tempClr;
 
-		float t1x = map(daysSinceBaseStartTime(currDate) , 0 , timelineDurationInDays, chartX1+margin*2, chartX2);
+		float t1x = map(daysSinceBaseStartTime(currDate) , 0 , timelineDurationInDays, chartX1+margin*1, chartX2);
 		float t1y = map(t1, MAX_TEMP, MIN_TEMP, chartY1, chartY2);
 
 		float t2x = t1x;
@@ -118,6 +119,7 @@ void draw() {
 			tempClr = color(255, 50, 50);
 		}
 		stroke(tempClr);
+		// stroke(tempClr, map(abs(t1-t2), 0, 15, 75, 255));
 		strokeWeight(2);
 		line(t1x, t1y, t2x, t2y);
 		fill(tempClr);
