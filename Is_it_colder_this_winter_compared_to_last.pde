@@ -18,6 +18,9 @@ float chartX2;
 float chartY1;
 float chartY2;
 
+int MAX_TEMP = 30;
+int MIN_TEMP = -30;
+
 
 DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 DateTime baseTimeStart, baseTimeEnd;
@@ -39,7 +42,7 @@ void setup() {
 	chartX1 = (margin * 1);
 	chartX2 = width - (margin);
 	chartY1 = (margin * 1);
-	chartY2 = height - (margin);
+	chartY2 = height - (margin*6);
 
 
 	// t = loadTemps("toronto.txt"); // old way
@@ -71,8 +74,8 @@ void draw() {
 
 	// Draw horiz temp guidelines
 	stroke(200);
-	for (int i = 40; i > -41; i-=10) {
-		float ly = map(i, 40, -40, chartY1, chartY2);
+	for (int i = MAX_TEMP; i > MIN_TEMP-1; i-=10) {
+		float ly = map(i, MAX_TEMP, MIN_TEMP, chartY1, chartY2);
 		line(chartX1+margin * 2, ly, chartX2, ly);
 		fill(0);
 		textFont(font);
@@ -85,7 +88,8 @@ void draw() {
 		// draw month vert lines and timeline ticks/labels
 	}
 	*/
-
+	float pt1x = -9999;
+	float pt1y = -9999; // previous t1 temp x/y
 	for (DateTime currDate = baseTimeStart; currDate.isBefore(baseTimeEnd); currDate = currDate.plusDays(1)){
 		float t1 = 0;
 		float t2 = 0;
@@ -93,20 +97,20 @@ void draw() {
 
 		String baseFormattedDate = formatter.print(currDate);
 		String compFormattedDate = formatter.print(compTimeDate);
-		println(baseFormattedDate +  " vs " + compFormattedDate);
+		// println(baseFormattedDate +  " vs " + compFormattedDate);
 
 		if((thm.get(baseFormattedDate) != null) && (thm.get(compFormattedDate) != null)){
 			t1 = thm.get(baseFormattedDate);
 			t2 = thm.get(compFormattedDate);
-			println(baseFormattedDate + ", " + t1 + " vs " + t2 + ", " + compFormattedDate);
+			// println(baseFormattedDate + ", " + t1 + " vs " + t2 + ", " + compFormattedDate);
 		}
 		color tempClr;
 
 		float t1x = map(daysSinceBaseStartTime(currDate) , 0 , timelineDurationInDays, chartX1+margin*2, chartX2);
-		float t1y = map(t1, 40, -40, chartY1, chartY2);
+		float t1y = map(t1, MAX_TEMP, MIN_TEMP, chartY1, chartY2);
 
 		float t2x = t1x;
-		float t2y = map(t2, 40, -40, chartY1, chartY2);
+		float t2y = map(t2, MAX_TEMP, MIN_TEMP, chartY1, chartY2);
 
 		if(t1<t2){ // is it colder this year than last?
 			tempClr = color(50, 50, 255);
@@ -114,9 +118,16 @@ void draw() {
 			tempClr = color(255, 50, 50);
 		}
 		stroke(tempClr);
+		strokeWeight(2);
 		line(t1x, t1y, t2x, t2y);
 		fill(tempClr);
 		ellipse(t1x, t1y, 3,  3);
+
+		// if(pt1x != -9999){
+		// 	line(t1x, t1y, pt1x, pt1y);
+		// }
+		pt1x = t1x;
+		pt1y = t1y;
 	}
 	
 	/*
@@ -246,9 +257,9 @@ void loadTemps(HashMap _hm, String _filename){
 			String[] loadedDataRow = split(loadedData[j], ",");
 			String dt = scrubQuotes(loadedDataRow[0]);
 			float t1 = float(scrubQuotes(loadedDataRow[9].substring(1,loadedDataRow[9].length()-1)));
-			if(t1 > -100){ // this part is sketchy - find a better way of doing this
+			if(t1+1 != 1){ // this is my way of avoid using Float.isNaN() which won't work in Processing.js
 				hm.put(dt, t1);
-				println("hm.put(" + dt + ", " + t1 + ")");
+				// println("hm.put(" + dt + ", " + t1 + ")");
 			}
 	}
 }
