@@ -42,7 +42,7 @@ void setup() {
 	chartX1 = (margin * 1);
 	chartX2 = width - (margin);
 	chartY1 = (margin * 1);
-	chartY2 = height - (margin*6);
+	chartY2 = height - (margin*4);
 
 
 	// t = loadTemps("toronto.txt"); // old way
@@ -71,6 +71,8 @@ void setup() {
 
 void draw() {
 	background(255);
+	int dayOffset = getDayOffset(constrain(mouseX, chartX1, chartX2));
+	DateTime highlightDay = baseTimeStart.plusDays(dayOffset);
 
 	// Draw horiz temp guidelines
 	stroke(200);
@@ -118,6 +120,7 @@ void draw() {
 		}else{
 			tempClr = color(255, 50, 50);
 		}
+		if(highlightDay == currDate) tempClr = color(0);
 		stroke(tempClr);
 		// stroke(tempClr, map(abs(t1-t2), 0, 15, 75, 255));
 		strokeWeight(2);
@@ -239,6 +242,12 @@ Table loadTemps(String _input){
 	return cmprTempData;
 }
 */
+
+int getDayOffset(float _mx){
+	float mx = _mx;
+	int dayOffset = int(map(mx, chartX1, chartX2, 0, timelineDurationInDays));
+	return dayOffset;
+}
 
 int daysSinceBaseStartTime(DateTime _cdt){
 	DateTime cdt = _cdt;
