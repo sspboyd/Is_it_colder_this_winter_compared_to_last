@@ -18,8 +18,8 @@ float chartX2;
 float chartY1;
 float chartY2;
 
-int MAX_TEMP = 20;
-int MIN_TEMP = -20;
+int MAX_TEMP = 30;
+int MIN_TEMP = -30;
 
 
 DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
@@ -37,7 +37,7 @@ void setup() {
 	font = createFont("Helvetica", 12);  //requires a font file in the data folder
 
 	margin = width * pow(PHI, 6);
-	// println("margin = " + margin);
+	println("margin = " + margin);
 
 	chartX1 = (margin * 1);
 	chartX2 = width - (margin);
@@ -59,7 +59,7 @@ void setup() {
 
 	
 	 compIntervalYrs = 1; 
-	 baseTimeStart = new DateTime(2013, 11, 1, 0, 0, 0, 0);;  // October 2013
+	 baseTimeStart = new DateTime(2013, 1, 1, 0, 0, 0, 0);;  // October 2013
 	 baseTimeEnd = new DateTime(2014, 3, 30, 0, 0, 0, 0);
 	 compTimeStart = baseTimeStart.minusYears(compIntervalYrs);
 	 compTimeEnd = baseTimeEnd.minusYears(compIntervalYrs);
@@ -71,7 +71,11 @@ void setup() {
 
 void draw() {
 	background(255);
-	int dayOffset = getDayOffset(constrain(mouseX, chartX1, chartX2));
+	int dayOffset = -1;
+	if( (mouseX>chartX1+margin) && (mouseX < chartX2) ){
+		dayOffset = getDayOffset(mouseX);
+	}
+	// int dayOffset = getDayOffset(constrain(mouseX, chartX1+margin, chartX2));
 	DateTime highlightDay = baseTimeStart.plusDays(dayOffset);
 
 	// Draw horiz temp guidelines
@@ -120,13 +124,15 @@ void draw() {
 		}else{
 			tempClr = color(255, 50, 50);
 		}
-		if(highlightDay == currDate) tempClr = color(0);
+		if(highlightDay.isEqual(currDate)) tempClr = color(tempClr, 150);
 		stroke(tempClr);
 		// stroke(tempClr, map(abs(t1-t2), 0, 15, 75, 255));
-		strokeWeight(2);
+		strokeWeight(4.0);
 		line(t1x, t1y, t2x, t2y);
-		fill(tempClr);
-		ellipse(t1x, t1y, 3,  3);
+		// fill(tempClr);
+		noFill();
+		strokeWeight(.25);
+		ellipse(t1x, t1y, 15,  15);
 
 		// if(pt1x != -9999){
 		// 	line(t1x, t1y, pt1x, pt1y);
@@ -245,7 +251,7 @@ Table loadTemps(String _input){
 
 int getDayOffset(float _mx){
 	float mx = _mx;
-	int dayOffset = int(map(mx, chartX1, chartX2, 0, timelineDurationInDays));
+	int dayOffset = int(map(mx, chartX1+margin, chartX2, 0, timelineDurationInDays));
 	return dayOffset;
 }
 
