@@ -59,7 +59,7 @@ void setup() {
 
 	
 	 compIntervalYrs = 1; 
-	 baseTimeStart = new DateTime(2013, 1, 1, 0, 0, 0, 0);;  // October 2013
+	 baseTimeStart = new DateTime(2013, 10, 1, 0, 0, 0, 0);;  // October 2013
 	 baseTimeEnd = new DateTime(2014, 3, 30, 0, 0, 0, 0);
 	 compTimeStart = baseTimeStart.minusYears(compIntervalYrs);
 	 compTimeEnd = baseTimeEnd.minusYears(compIntervalYrs);
@@ -131,7 +131,7 @@ void draw() {
 		line(t1x, t1y, t2x, t2y);
 		// fill(tempClr);
 		noFill();
-		strokeWeight(.25);
+		strokeWeight(.47);
 		ellipse(t1x, t1y, 15,  15);
 
 		// if(pt1x != -9999){
