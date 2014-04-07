@@ -1,9 +1,14 @@
 import java.util.Map;
 
+////////Starting to wonder if going back to a table might be easier
+// 2014-10-1	2014 	10 	1 	October	Fall	high 	low 	mean 	
+
+
+
 //Declare Globals
 int rSn; // randomSeed number. put into var so can be saved in file name. defaults to 47
 final float PHI = 0.618033989;
-PFont font;
+PFont font, hoverText; 
 // Table t;
 // CompData compData;
 String[] tempData;
@@ -29,12 +34,13 @@ int compIntervalYrs, timelineDurationInDays;
 
 void setup() {
 	background(255);
-	size(900, 600);
+	size(1200, 600);
 
 	rSn = 47; // 4,7,11,18,29,47,76,123,199
 	randomSeed(rSn);
 
 	font = createFont("Helvetica", 12);  //requires a font file in the data folder
+	hoverText = createFont("Helvetica", 18);  //requires a font file in the data folder
 
 	margin = width * pow(PHI, 6);
 	println("margin = " + margin);
@@ -59,7 +65,7 @@ void setup() {
 
 	
 	 compIntervalYrs = 1; 
-	 baseTimeStart = new DateTime(2013, 10, 1, 0, 0, 0, 0);;  // October 2013
+	 baseTimeStart = new DateTime(2013, 1, 1, 0, 0, 0, 0);;  // October 2013
 	 baseTimeEnd = new DateTime(2014, 3, 30, 0, 0, 0, 0);
 	 compTimeStart = baseTimeStart.minusYears(compIntervalYrs);
 	 compTimeEnd = baseTimeEnd.minusYears(compIntervalYrs);
@@ -72,7 +78,7 @@ void setup() {
 void draw() {
 	background(255);
 	int dayOffset = -1;
-	if( (mouseX>chartX1+margin) && (mouseX < chartX2) ){
+	if( (mouseX>chartX1+margin) && (mouseX < chartX2) && (mouseY>chartY1) && (mouseY < chartY2)){
 		dayOffset = getDayOffset(mouseX);
 	}
 	// int dayOffset = getDayOffset(constrain(mouseX, chartX1+margin, chartX2));
@@ -113,7 +119,7 @@ void draw() {
 		}
 		color tempClr;
 
-		float t1x = map(daysSinceBaseStartTime(currDate) , 0 , timelineDurationInDays, chartX1+margin*1, chartX2);
+		float t1x = map(daysSinceBaseStartTime(currDate) , 0 , timelineDurationInDays, chartX1+margin*PHI, chartX2);
 		float t1y = map(t1, MAX_TEMP, MIN_TEMP, chartY1, chartY2);
 
 		float t2x = t1x;
@@ -124,7 +130,9 @@ void draw() {
 		}else{
 			tempClr = color(255, 50, 50);
 		}
-		if(highlightDay.isEqual(currDate)) tempClr = color(tempClr, 150);
+		if(highlightDay.isEqual(currDate)){
+			tempClr = color(tempClr, 50);	
+		} 
 		stroke(tempClr);
 		// stroke(tempClr, map(abs(t1-t2), 0, 15, 75, 255));
 		strokeWeight(4.0);
@@ -134,12 +142,30 @@ void draw() {
 		strokeWeight(.47);
 		ellipse(t1x, t1y, 15,  15);
 
-		// if(pt1x != -9999){
-		// 	line(t1x, t1y, pt1x, pt1y);
-		// }
+		if(highlightDay.isEqual(currDate)){
+			textFont(hoverText);
+			text(nf(t1,0,1), t1x, chartY1+margin*PHI);
+			stroke(0);
+			strokeWeight(.5);
+			String ds = currDate.toString("MMMM dd");
+			line(t1x, t1y-margin, t1x, chartY1+margin*PHI);
+			
+			line(t1x, t2y+margin, t1x, chartY2-textAscent()-5);
+			line(t1x-textWidth(ds)/2, chartY2-textAscent()-5, t1x+textWidth(ds)/2, chartY2-textAscent()-5);
+
+			text(ds, t1x-textWidth(ds)/2, chartY2);
+		} 
+		/*
+		if(pt1x != -9999){
+			strokeWeight(2);
+		 	line(t1x, t1y, pt1x, pt1y);
+		 }
 		pt1x = t1x;
 		pt1y = t1y;
+		*/
 	}
+	textFont(hoverText);
+	text("Was it colder this year than last?? Winter 2013/14 vs 2012/13", chartX1, chartY2+margin, chartX2-chartX1, margin*3);
 	
 	/*
 	for (int i = 0; i < t.getRowCount(); i++) {
@@ -249,9 +275,14 @@ Table loadTemps(String _input){
 }
 */
 
+void hoverText(){
+
+
+}
+
 int getDayOffset(float _mx){
 	float mx = _mx;
-	int dayOffset = int(map(mx, chartX1+margin, chartX2, 0, timelineDurationInDays));
+	int dayOffset = int(map(mx, chartX1+margin*PHI, chartX2, 0, timelineDurationInDays));
 	return dayOffset;
 }
 
@@ -271,13 +302,13 @@ void loadTemps(HashMap _hm, String _filename){
 	int dataRowOffset = 25; // first row is 0, second is 1...
 	for (int j = dataRowOffset; j < dataRowOffset+365; j++) {
 		String r = loadedData[j];
-			String[] loadedDataRow = split(loadedData[j], ",");
-			String dt = scrubQuotes(loadedDataRow[0]);
-			float t1 = float(scrubQuotes(loadedDataRow[9].substring(1,loadedDataRow[9].length()-1)));
-			if(t1+1 != 1){ // this is my way of avoid using Float.isNaN() which won't work in Processing.js
-				hm.put(dt, t1);
-				// println("hm.put(" + dt + ", " + t1 + ")");
-			}
+		String[] loadedDataRow = split(loadedData[j], ",");
+		String dt = scrubQuotes(loadedDataRow[0]);
+		float t1 = float(scrubQuotes(loadedDataRow[9].substring(1,loadedDataRow[9].length()-1)));
+		if(t1+1 != 1){ // this is my way of avoid using Float.isNaN() which won't work in Processing.js
+			hm.put(dt, t1);
+			// println("hm.put(" + dt + ", " + t1 + ")");
+		}
 	}
 }
 
